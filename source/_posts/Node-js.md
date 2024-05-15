@@ -8,7 +8,7 @@ tags: Jerry的HEXO分享
  
 `npm versin`  查看版本號
 
-![](source/_posts/Node-js/Nodejs.png)
+![](Jerry080401.github.io/source/_posts/Node-js/)
 
 * [Git](https://git-scm.com/) 用來將網站發布到Github Page
 * Git基礎用法可參考:[Denny學長的Git教學(上)](https://hackmd.io/@EJuMQJj_QPylQryxaYpC-Q/S1L8jjah6)
