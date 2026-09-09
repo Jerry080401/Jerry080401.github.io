@@ -1,0 +1,14 @@
+---
+import { withBase } from "../lib/url";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="找不到頁面" canonical={false} noindex>
+  <section class="page-shell">
+    <header class="page-header">
+      <h1>404</h1>
+      <p>這個頁面不存在或已經移動。</p>
+    </header>
+    <div class="prose"><a href={withBase("/")}>返回首頁 →</a></div>
+  </section>
+</BaseLayout>

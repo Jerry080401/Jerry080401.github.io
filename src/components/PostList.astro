@@ -1,0 +1,38 @@
+---
+import type { Post } from "../lib/posts";
+import { formatDate, postPath } from "../lib/posts";
+import { withBase } from "../lib/url";
+
+interface Props {
+  posts: Post[];
+  emptyText?: string;
+}
+
+const { posts, emptyText = "文章整理完成後，會從這裡開始出現。" } = Astro.props;
+---
+
+{
+  posts.length > 0 ? (
+    <ol class="post-list">
+      {posts.map((post) => (
+        <li>
+          <article>
+            <div class="post-meta">
+              <time datetime={post.data.published.toISOString()}>
+                {formatDate(post.data.published)}
+              </time>
+              <span>{post.data.category}</span>
+            </div>
+            <h2><a href={withBase(postPath(post))}>{post.data.title}</a></h2>
+            {post.data.description && <p>{post.data.description}</p>}
+          </article>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <div class="empty-state">
+      <h2>還沒有內容</h2>
+      <p>{emptyText}</p>
+    </div>
+  )
+}

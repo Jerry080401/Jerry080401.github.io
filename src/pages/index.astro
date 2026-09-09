@@ -1,0 +1,21 @@
+---
+import PostList from "../components/PostList.astro";
+import { getPublishedPosts } from "../lib/posts";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const posts = (await getPublishedPosts()).slice(0, 6);
+---
+
+<BaseLayout>
+  <section class="home-intro">
+    <h1>Jerry's Notes</h1>
+  </section>
+
+  <section class="content-section" aria-labelledby="recent-title">
+    <div class="section-heading">
+      <h2 id="recent-title">最近更新</h2>
+      <span>ARTICLES & NOTES</span>
+    </div>
+    <PostList posts={posts} />
+  </section>
+</BaseLayout>
