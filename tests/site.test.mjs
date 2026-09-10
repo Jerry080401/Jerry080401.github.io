@@ -328,6 +328,18 @@ test("language picker uses a desktop popover and mobile inline disclosure", asyn
   assert.match(css, /\.language-picker--mobile[\s\S]*\.language-options/);
 });
 
+test("language picker is frameless and its options rise into view", async () => {
+  const css = await source("src/styles/global.css");
+
+  assert.match(css, /\.language-picker summary\s*\{[^}]*border:\s*0;/);
+  assert.match(css, /\.language-picker--desktop details\s*\{[^}]*position:\s*static;/);
+  assert.match(css, /\.language-options\s*\{[^}]*border:\s*0;[^}]*background:\s*transparent;/);
+  assert.match(css, /\.language-picker details\[open\] \.language-options > li\s*\{[^}]*animation:\s*language-option-rise/);
+  assert.match(css, /\.language-options > li:nth-child\(2\)\s*\{[^}]*animation-delay:/);
+  assert.match(css, /@keyframes language-option-rise[\s\S]*opacity:\s*0;[\s\S]*translateY\(0\.5rem\)[\s\S]*opacity:\s*1;[\s\S]*translateY\(0\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
 test("mobile navigation keeps language links available without JavaScript", async () => {
   const layout = await source("src/layouts/BaseLayout.astro");
   const css = await source("src/styles/global.css");
