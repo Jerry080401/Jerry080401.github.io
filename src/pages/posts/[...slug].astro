@@ -1,6 +1,8 @@
 ---
 import { render } from "astro:content";
+import { noteTopicPath } from "../../lib/note-topics";
 import { formatDate, getPublishedPosts, postPath, type Post } from "../../lib/posts";
+import { withBase } from "../../lib/url";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
@@ -17,6 +19,7 @@ interface Props {
 
 const { post } = Astro.props;
 const { Content } = await render(post);
+const topic = post.data.category === "學習筆記" ? post.data.topic : undefined;
 ---
 
 <BaseLayout title={post.data.title} description={post.data.description}>
@@ -24,7 +27,9 @@ const { Content } = await render(post);
     <header class="article-header">
       <div class="post-meta">
         <time datetime={post.data.published.toISOString()}>{formatDate(post.data.published)}</time>
-        <span>{post.data.category}</span>
+        <span>
+          {topic ? <a href={withBase(noteTopicPath(topic.slug))}>{topic.name}</a> : post.data.category}
+        </span>
       </div>
       <h1>{post.data.title}</h1>
       {post.data.description && <p>{post.data.description}</p>}

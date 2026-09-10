@@ -1,0 +1,30 @@
+---
+import PostList from "../../components/PostList.astro";
+import { groupNoteTopics, type NoteTopic } from "../../lib/note-topics";
+import { getPublishedPosts } from "../../lib/posts";
+import { withBase } from "../../lib/url";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const topics = groupNoteTopics(await getPublishedPosts());
+  return topics.map((topic) => ({ params: { topic: topic.slug }, props: { topic } }));
+}
+
+interface Props {
+  topic: NoteTopic;
+}
+
+const { topic } = Astro.props;
+const countText = topic.posts.length === 1 ? "1 篇筆記" : `${topic.posts.length} 篇筆記`;
+---
+
+<BaseLayout title={`${topic.name} — 學習筆記`}>
+  <section class="page-shell">
+    <a class="topic-back" href={withBase("/notes/")}>← 所有主題</a>
+    <header class="page-header">
+      <h1>{topic.name}</h1>
+      <p>這個主題目前整理了 {countText}。</p>
+    </header>
+    <PostList posts={topic.posts} />
+  </section>
+</BaseLayout>

@@ -1,17 +1,18 @@
 ---
-import PostList from "../components/PostList.astro";
+import TopicList from "../components/TopicList.astro";
+import { groupNoteTopics } from "../lib/note-topics";
 import { getPublishedPosts } from "../lib/posts";
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-const posts = (await getPublishedPosts()).filter((post) => post.data.category === "學習筆記");
+const topics = groupNoteTopics(await getPublishedPosts());
 ---
 
 <BaseLayout title="學習筆記">
   <section class="page-shell">
     <header class="page-header">
       <h1>學習筆記</h1>
-      <p>學習過程中的重點、線索，以及可以重複使用的方法。</p>
+      <p>依主題整理學習過程中的重點、線索，以及可以重複使用的方法。</p>
     </header>
-    <PostList posts={posts} emptyText="整理完成的學習筆記會出現在這裡。" />
+    <TopicList topics={topics} />
   </section>
 </BaseLayout>

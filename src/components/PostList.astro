@@ -9,6 +9,8 @@ interface Props {
 }
 
 const { posts, emptyText = "文章整理完成後，會從這裡開始出現。" } = Astro.props;
+const metaLabel = (post: Post) =>
+  post.data.category === "學習筆記" ? (post.data.topic?.name ?? post.data.category) : post.data.category;
 ---
 
 {
@@ -21,10 +23,12 @@ const { posts, emptyText = "文章整理完成後，會從這裡開始出現。"
               <time datetime={post.data.published.toISOString()}>
                 {formatDate(post.data.published)}
               </time>
-              <span>{post.data.category}</span>
+              <span>{metaLabel(post)}</span>
             </div>
-            <h2><a href={withBase(postPath(post))}>{post.data.title}</a></h2>
-            {post.data.description && <p>{post.data.description}</p>}
+            <div class="post-copy">
+              <h2><a href={withBase(postPath(post))}>{post.data.title}</a></h2>
+              {post.data.description && <p>{post.data.description}</p>}
+            </div>
           </article>
         </li>
       ))}

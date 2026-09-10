@@ -31,3 +31,12 @@ tags: [標籤]
 draft: false
 ---
 ```
+
+學習筆記另需指定主題；同一個 `topic.slug` 可以包含一篇或多篇筆記：
+
+```yaml
+category: 學習筆記
+topic:
+  name: 瀏覽器安全
+  slug: browser-security
+```

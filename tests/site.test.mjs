@@ -30,13 +30,13 @@ test("home omits undecided Japanese and kanji decorations", async () => {
 });
 
 test("content lanes have headings and empty states", async () => {
-  for (const [path, heading] of [
-    ["src/pages/articles.astro", "文章"],
-    ["src/pages/notes.astro", "學習筆記"],
+  for (const [path, heading, list] of [
+    ["src/pages/articles.astro", "文章", "PostList"],
+    ["src/pages/notes.astro", "學習筆記", "TopicList"],
   ]) {
     const page = await source(path);
     assert.match(page, new RegExp(`<h1[^>]*>${heading}</h1>`));
-    assert.match(page, /PostList/);
+    assert.match(page, new RegExp(list));
   }
 });
 
@@ -149,4 +149,63 @@ test("C3 separates the side navigation from page utilities", async () => {
   assert.match(css, /\.app-shell\s*\{[\s\S]*grid-template-columns:\s*11\.5rem minmax\(0, 1fr\)/);
   assert.match(css, /\.home-intro\s*\{/);
   assert.match(css, /@media[\s\S]*max-width:\s*760px[\s\S]*\.side-rail,[\s\S]*\.utility-bar\s*\{[\s\S]*display:\s*none/);
+});
+
+test("learning notes are grouped into stable topic pages", async () => {
+  const { groupNoteTopics, noteTopicPath } = await import("../src/lib/note-topics.ts");
+  const makePost = ({ title, published, category = "學習筆記", topic }) => ({
+    id: `${title}.md`,
+    data: { title, published: new Date(published), category, topic },
+  });
+  const posts = [
+    makePost({ title: "第二篇", published: "2026-03-02", topic: { name: "瀏覽器安全", slug: "browser-security" } }),
+    makePost({ title: "唯一一篇", published: "2026-03-01", topic: { name: "Python", slug: "python" } }),
+    makePost({ title: "第一篇", published: "2026-02-01", topic: { name: "瀏覽器安全", slug: "browser-security" } }),
+    makePost({ title: "一般文章", published: "2026-04-01", category: "文章" }),
+  ];
+
+  const topics = groupNoteTopics(posts);
+  assert.deepEqual(
+    topics.map(({ name, slug, posts }) => ({ name, slug, titles: posts.map(({ data }) => data.title) })),
+    [
+      { name: "瀏覽器安全", slug: "browser-security", titles: ["第二篇", "第一篇"] },
+      { name: "Python", slug: "python", titles: ["唯一一篇"] },
+    ],
+  );
+  assert.equal(noteTopicPath("browser-security"), "/notes/browser-security/");
+});
+
+test("learning-note topics are required and cannot disagree on a slug", async () => {
+  const { groupNoteTopics } = await import("../src/lib/note-topics.ts");
+  const missing = { id: "missing.md", data: { title: "沒有主題", published: new Date(), category: "學習筆記" } };
+  assert.throws(() => groupNoteTopics([missing]), /missing a topic/i);
+
+  const conflicting = [
+    { id: "one.md", data: { title: "一", published: new Date(), category: "學習筆記", topic: { name: "名稱一", slug: "same" } } },
+    { id: "two.md", data: { title: "二", published: new Date(), category: "學習筆記", topic: { name: "名稱二", slug: "same" } } },
+  ];
+  assert.throws(() => groupNoteTopics(conflicting), /same topic slug/i);
+
+  const config = await source("src/content.config.ts");
+  assert.match(config, /topicSchema/);
+  assert.match(config, /category === "學習筆記"/);
+  assert.match(config, /superRefine/);
+});
+
+test("learning notes index lists topics before their posts", async () => {
+  const notes = await source("src/pages/notes.astro");
+  const topicPage = await source("src/pages/notes/[topic].astro");
+  const topicList = await source("src/components/TopicList.astro");
+
+  assert.match(notes, /TopicList/);
+  assert.doesNotMatch(notes, /<PostList/);
+  assert.match(topicPage, /<PostList/);
+  assert.match(topicPage, /所有主題/);
+  assert.match(topicList, /topic-list/);
+  assert.match(topicList, /1 篇筆記/);
+});
+
+test("post excerpts stay in the title column", async () => {
+  const postList = await source("src/components/PostList.astro");
+  assert.match(postList, /class="post-copy"[\s\S]*<h2>[\s\S]*post\.data\.description/);
 });

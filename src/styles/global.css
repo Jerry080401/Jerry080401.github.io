@@ -344,6 +344,14 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
+.post-meta a {
+  color: inherit;
+}
+
+.post-copy {
+  min-width: 0;
+}
+
 .post-list h2 {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
@@ -376,6 +384,65 @@ main {
 .empty-state p {
   margin: 0.55rem 0 0;
   color: var(--muted);
+}
+
+.topic-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.topic-list li {
+  border-bottom: 1px solid var(--line);
+}
+
+.topic-row {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 7.5rem;
+  text-decoration: none;
+}
+
+.topic-number,
+.topic-count,
+.topic-copy time {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.topic-number {
+  letter-spacing: 0.16em;
+}
+
+.topic-copy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.topic-copy strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.7rem;
+  font-weight: 400;
+}
+
+.topic-count {
+  white-space: nowrap;
+}
+
+.topic-back {
+  display: inline-block;
+  margin-bottom: 2rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.topic-back:hover,
+.topic-back:focus-visible {
+  color: var(--accent);
 }
 
 .prose {
@@ -502,6 +569,17 @@ main {
   .post-meta {
     flex-direction: row;
     gap: 0.75rem;
+  }
+
+  .topic-row {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    min-height: 7rem;
+    padding: 1rem 0;
+  }
+
+  .topic-count {
+    grid-column: 2;
   }
 
   .site-footer {
