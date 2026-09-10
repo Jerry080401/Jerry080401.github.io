@@ -259,7 +259,7 @@ test("layout localizes navigation, controls, feeds, and alternate-language links
   assert.match(layout, /locale\?: Locale/);
   assert.match(layout, /<html lang=\{locale\}/);
   assert.match(layout, /hreflang/);
-  assert.match(layout, /class="language-switcher"/);
+  assert.match(layout, /LanguagePicker/);
   assert.match(layout, /messages\[locale\]/);
   assert.match(layout, /localePath/);
   assert.doesNotMatch(layout, />跳至主要內容</);
@@ -299,4 +299,41 @@ test("content language links include only translations that exist", async () => 
     "zh-Hant": "/notes/security/",
     de: "/de/notes/security/",
   });
+});
+
+test("language picker uses a desktop popover and mobile inline disclosure", async () => {
+  const layout = await source("src/layouts/BaseLayout.astro");
+  const picker = await source("src/components/LanguagePicker.astro");
+  const css = await source("src/styles/global.css");
+
+  assert.match(layout, /LanguagePicker/);
+  assert.match(layout, /mode="desktop"/);
+  assert.match(layout, /mode="mobile"/);
+  assert.doesNotMatch(layout, /class="language-switcher"/);
+  assert.match(picker, /<details/);
+  assert.match(picker, /<summary/);
+  assert.match(picker, /availableLocales\.length > 1/);
+  assert.match(picker, /aria-current="page"/);
+  assert.match(picker, /role="group"/);
+  assert.match(picker, /aria-label=\{copy\.languageLabel\}/);
+  assert.match(picker, /<ul class="language-options">/);
+  assert.match(picker, /<li>/);
+  assert.doesNotMatch(picker, /role="list"/);
+  assert.doesNotMatch(picker, /<svg/);
+  assert.match(picker, /class="language-chevron"/);
+  assert.match(picker, /language-chevron--closed[^>]*>↓</);
+  assert.match(picker, /language-chevron--open[^>]*>↑</);
+  assert.doesNotMatch(css, /\.language-picker summary::after/);
+  assert.match(css, /\.language-picker--desktop[\s\S]*\.language-options[\s\S]*position:\s*absolute[\s\S]*bottom:/);
+  assert.match(css, /\.language-picker--mobile[\s\S]*\.language-options/);
+});
+
+test("mobile navigation keeps language links available without JavaScript", async () => {
+  const layout = await source("src/layouts/BaseLayout.astro");
+  const css = await source("src/styles/global.css");
+
+  assert.match(layout, /<noscript>[\s\S]*class="mobile-noscript-nav"/);
+  assert.match(layout, /mobile-noscript-nav[\s\S]*<LanguagePicker[^>]+mode="mobile"/);
+  assert.match(css, /\.mobile-noscript-nav\s*\{[\s\S]*display:\s*none/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.mobile-noscript-nav\s*\{[\s\S]*display:\s*grid/);
 });

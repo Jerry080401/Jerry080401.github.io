@@ -158,35 +158,121 @@ a:focus-visible {
   letter-spacing: 0.06em;
 }
 
-.language-switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.6rem;
+.language-picker {
+  position: relative;
   margin-bottom: 0.45rem;
   letter-spacing: 0;
 }
 
-.language-switcher a,
-.language-switcher span {
+.language-picker-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--muted);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.language-picker details {
+  position: relative;
+}
+
+.language-picker summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  list-style: none;
+  cursor: pointer;
+}
+
+.language-picker summary::-webkit-details-marker {
+  display: none;
+}
+
+.language-picker summary:hover,
+.language-picker summary:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.language-chevron {
+  width: 0.85rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.language-chevron--open {
+  display: none;
+}
+
+.language-picker details[open] .language-chevron--closed {
+  display: none;
+}
+
+.language-picker details[open] .language-chevron--open {
+  display: inline;
+}
+
+.language-options {
+  z-index: 30;
+  display: grid;
+  margin: 0;
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  list-style: none;
+}
+
+.language-options > li > a,
+.language-options > li > [aria-current="page"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.35rem;
+  padding: 0.4rem 0.55rem;
   color: var(--muted);
   text-decoration: none;
 }
 
-.language-switcher a:hover,
-.language-switcher a:focus-visible,
-.language-switcher span[aria-current="page"] {
+.language-options a:hover,
+.language-options a:focus-visible {
   color: var(--ink);
+  background: var(--accent-soft);
+  outline: none;
 }
 
-.language-switcher span[aria-current="page"] {
+.language-options > li > [aria-current="page"] {
+  color: var(--ink);
   font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
 }
 
-.rail-footer .language-switcher {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.language-check {
+  color: var(--accent);
+}
+
+.language-picker--desktop .language-options {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  box-shadow: 0 0.8rem 1.8rem color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+.language-picker--mobile .language-options {
+  margin-top: 0.35rem;
+}
+
+.language-single {
+  min-height: 2.5rem;
+  padding: 0.7rem 0.65rem;
+  border-block: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .page-column {
@@ -261,6 +347,10 @@ main,
 }
 
 .mobile-header {
+  display: none;
+}
+
+.mobile-noscript-nav {
   display: none;
 }
 
@@ -562,32 +652,55 @@ main {
     display: none;
   }
 
-  .mobile-nav a {
+  .mobile-noscript-nav {
+    display: grid;
+    padding: 0.75rem 1rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+
+  .mobile-nav a,
+  .mobile-noscript-nav > a {
     min-height: 2.75rem;
     padding: 0.65rem 0;
     color: var(--muted);
     text-decoration: none;
   }
 
-  .mobile-nav a[aria-current="page"] {
+  .mobile-nav a[aria-current="page"],
+  .mobile-noscript-nav > a[aria-current="page"] {
     color: var(--ink);
   }
 
-  .mobile-nav .language-switcher {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.25rem 0.8rem;
+  .mobile-nav .language-picker,
+  .mobile-noscript-nav .language-picker {
     margin: 0.65rem 0 0;
     padding-top: 0.65rem;
     border-top: 1px solid var(--line);
   }
 
-  .mobile-nav .language-switcher a,
-  .mobile-nav .language-switcher span {
-    display: inline-flex;
-    align-items: center;
+  .mobile-nav .language-picker-label,
+  .mobile-noscript-nav .language-picker-label {
+    margin-bottom: 0.45rem;
+  }
+
+  .mobile-nav .language-picker summary,
+  .mobile-noscript-nav .language-picker summary {
     min-height: 2.75rem;
-    padding: 0;
+  }
+
+  .mobile-nav .language-options,
+  .mobile-noscript-nav .language-options {
+    border-top: 0;
+    box-shadow: none;
+  }
+
+  .mobile-nav .language-options > li > a,
+  .mobile-nav .language-options > li > [aria-current="page"],
+  .mobile-noscript-nav .language-options > li > a,
+  .mobile-noscript-nav .language-options > li > [aria-current="page"] {
+    min-height: 2.75rem;
+    padding: 0.4rem 0.65rem;
   }
 
   main,

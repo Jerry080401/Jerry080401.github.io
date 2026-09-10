@@ -1,8 +1,8 @@
 ---
 import { site } from "../config";
+import LanguagePicker from "../components/LanguagePicker.astro";
 import {
   defaultLocale,
-  languageNames,
   localePath,
   locales,
   messages,
@@ -88,6 +88,13 @@ const rssPath = localePath(locale, "/rss.xml");
         document.documentElement.dataset.theme = dark ? "dark" : "light";
       })();
     </script>
+    <noscript>
+      <style>
+        @media (max-width: 760px) {
+          .mobile-header { display: none !important; }
+        }
+      </style>
+    </noscript>
   </head>
   <body>
     <a class="skip-link" href="#content">{copy.skipToContent}</a>
@@ -114,17 +121,7 @@ const rssPath = localePath(locale, "/rss.xml");
         </nav>
 
         <div class="rail-footer">
-          <div class="language-switcher" role="group" aria-label={copy.languageLabel}>
-            {
-              availableLocales.map((language) => language === locale ? (
-                <span lang={language} aria-current="page">{languageNames[language]}</span>
-              ) : (
-                <a lang={language} hreflang={language} href={withBase(resolvedLanguagePaths[language]!)}>
-                  {languageNames[language]}
-                </a>
-              ))
-            }
-          </div>
+          <LanguagePicker locale={locale} paths={resolvedLanguagePaths} mode="desktop" />
           <a href={withBase(rssPath)}>RSS</a>
           <span>© {new Date().getFullYear()} {site.author}</span>
         </div>
@@ -170,19 +167,22 @@ const rssPath = localePath(locale, "/rss.xml");
                 </a>
               ))
             }
-            <div class="language-switcher" role="group" aria-label={copy.languageLabel}>
-              {
-                availableLocales.map((language) => language === locale ? (
-                  <span lang={language} aria-current="page">{languageNames[language]}</span>
-                ) : (
-                  <a lang={language} hreflang={language} href={withBase(resolvedLanguagePaths[language]!)}>
-                    {languageNames[language]}
-                  </a>
-                ))
-              }
-            </div>
+            <LanguagePicker locale={locale} paths={resolvedLanguagePaths} mode="mobile" />
           </nav>
         </header>
+
+        <noscript>
+          <nav class="mobile-noscript-nav" aria-label={copy.mobileNavLabel}>
+            {
+              navigationItems.map((item) => (
+                <a href={withBase(item.href)} aria-current={isActive(item.href) ? "page" : undefined}>
+                  {item.label}
+                </a>
+              ))
+            }
+            <LanguagePicker locale={locale} paths={resolvedLanguagePaths} mode="mobile" />
+          </nav>
+        </noscript>
 
         <div class="utility-bar">
           <span>{sectionLabel}</span>
@@ -217,11 +217,38 @@ const rssPath = localePath(locale, "/rss.xml");
     <script>
       const menuButton = document.querySelector<HTMLButtonElement>("#menu-button");
       const mobileNavigation = document.querySelector<HTMLElement>("#mobile-navigation");
+      const languageDisclosures = Array.from(
+        document.querySelectorAll("details[data-language-disclosure]")
+      );
+      const closeLanguageDisclosures = () => {
+        for (const disclosure of languageDisclosures) {
+          disclosure.removeAttribute("open");
+        }
+      };
       const closeMenu = () => {
         menuButton?.setAttribute("aria-expanded", "false");
         menuButton?.setAttribute("aria-label", menuButton.dataset.openLabel ?? "");
         if (mobileNavigation) mobileNavigation.hidden = true;
+        closeLanguageDisclosures();
       };
+
+      for (const disclosure of languageDisclosures) {
+        disclosure.addEventListener("toggle", () => {
+          if (!disclosure.hasAttribute("open")) return;
+          for (const otherDisclosure of languageDisclosures) {
+            if (otherDisclosure !== disclosure) otherDisclosure.removeAttribute("open");
+          }
+        });
+      }
+
+      document.addEventListener("click", (event) => {
+        if (!(event.target instanceof Node)) return;
+        for (const disclosure of languageDisclosures) {
+          if (disclosure.hasAttribute("open") && !disclosure.contains(event.target)) {
+            disclosure.removeAttribute("open");
+          }
+        }
+      });
 
       menuButton?.addEventListener("click", () => {
         const open = menuButton.getAttribute("aria-expanded") === "true";
@@ -235,6 +262,14 @@ const rssPath = localePath(locale, "/rss.xml");
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
+          const openDisclosure = languageDisclosures.find((disclosure) =>
+            disclosure.hasAttribute("open")
+          );
+          if (openDisclosure) {
+            openDisclosure.removeAttribute("open");
+            openDisclosure.querySelector<HTMLElement>("summary")?.focus();
+            return;
+          }
           closeMenu();
           menuButton?.focus();
         }

@@ -1,0 +1,65 @@
+---
+import {
+  languageNames,
+  locales,
+  messages,
+  type Locale
+} from "../i18n";
+import type { LanguagePaths } from "../lib/translations";
+import { withBase } from "../lib/url";
+
+interface Props {
+  locale: Locale;
+  paths: LanguagePaths;
+  mode: "desktop" | "mobile";
+}
+
+const { locale, paths, mode } = Astro.props;
+const copy = messages[locale];
+const availableLocales = locales.filter((language) => paths[language]);
+const hasAlternatives = availableLocales.length > 1;
+---
+
+<div
+  class:list={["language-picker", `language-picker--${mode}`]}
+  data-language-picker
+  role="group"
+  aria-label={copy.languageLabel}
+>
+  <span class="language-picker-label">{copy.languageLabel}</span>
+  {
+    hasAlternatives ? (
+      <details data-language-disclosure>
+        <summary>
+          <span>{languageNames[locale]}</span>
+          <span class="language-chevron" aria-hidden="true">
+            <span class="language-chevron--closed">↓</span>
+            <span class="language-chevron--open">↑</span>
+          </span>
+        </summary>
+        <ul class="language-options">
+          {availableLocales.map((language) => (
+            <li>
+              {language === locale ? (
+                <span lang={language} aria-current="page">
+                  <span>{languageNames[language]}</span>
+                  <span class="language-check" aria-hidden="true">✓</span>
+                </span>
+              ) : (
+                <a
+                  lang={language}
+                  hreflang={language}
+                  href={withBase(paths[language]!)}
+                >
+                  <span>{languageNames[language]}</span>
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </details>
+    ) : (
+      <div class="language-single" lang={locale}>{languageNames[locale]}</div>
+    )
+  }
+</div>
