@@ -348,6 +348,24 @@ test("language options pop out from the trigger before settling", async () => {
   assert.match(css, /transform-origin:\s*bottom left/);
 });
 
+test("language options enter one at a time in a visible sequence", async () => {
+  const css = await source("src/styles/global.css");
+
+  assert.match(css, /\.language-picker details\[open\] \.language-options > li\s*\{[^}]*animation:\s*language-option-rise 260ms[^}]*both;[^}]*animation-delay:\s*40ms;/);
+  assert.match(css, /li:nth-child\(2\)\s*\{[^}]*animation-delay:\s*130ms;/);
+  assert.match(css, /li:nth-child\(3\)\s*\{[^}]*animation-delay:\s*220ms;/);
+  assert.match(css, /li:nth-child\(4\)\s*\{[^}]*animation-delay:\s*310ms;/);
+  const menuAnimation = css.match(/@keyframes language-menu-pop\s*\{([\s\S]*?)\n\}\n\n\.language-options >/);
+  assert.ok(menuAnimation);
+  assert.doesNotMatch(menuAnimation[1], /opacity:/);
+});
+
+test("reduced motion removes the stagger delay", async () => {
+  const css = await source("src/styles/global.css");
+
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*animation-delay:\s*0ms !important;/);
+});
+
 test("mobile navigation keeps language links available without JavaScript", async () => {
   const layout = await source("src/layouts/BaseLayout.astro");
   const css = await source("src/styles/global.css");

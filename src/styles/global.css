@@ -249,19 +249,20 @@ a:focus-visible {
 .language-picker details[open] .language-options > li {
   opacity: 0;
   transform: translateY(0.5rem);
-  animation: language-option-rise 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: language-option-rise 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 40ms;
 }
 
 .language-picker details[open] .language-options > li:nth-child(2) {
-  animation-delay: 35ms;
+  animation-delay: 130ms;
 }
 
 .language-picker details[open] .language-options > li:nth-child(3) {
-  animation-delay: 70ms;
+  animation-delay: 220ms;
 }
 
 .language-picker details[open] .language-options > li:nth-child(4) {
-  animation-delay: 105ms;
+  animation-delay: 310ms;
 }
 
 @keyframes language-option-rise {
@@ -279,19 +280,16 @@ a:focus-visible {
 @keyframes language-menu-pop {
   0% {
     max-height: 0;
-    opacity: 0;
     transform: translateY(0.75rem) scale(0.96);
   }
 
   78% {
     max-height: 12rem;
-    opacity: 1;
     transform: translateY(-0.125rem) scale(1.015);
   }
 
   100% {
     max-height: 12rem;
-    opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
@@ -843,5 +841,6 @@ main {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
   }
 }
