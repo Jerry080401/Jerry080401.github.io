@@ -238,6 +238,12 @@ a:focus-visible {
   border: 0;
   background: transparent;
   list-style: none;
+  overflow: hidden;
+  transform-origin: bottom left;
+}
+
+.language-picker details[open] .language-options {
+  animation: language-menu-pop 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .language-picker details[open] .language-options > li {
@@ -267,6 +273,26 @@ a:focus-visible {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes language-menu-pop {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.96);
+  }
+
+  78% {
+    max-height: 12rem;
+    opacity: 1;
+    transform: translateY(-0.125rem) scale(1.015);
+  }
+
+  100% {
+    max-height: 12rem;
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

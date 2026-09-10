@@ -340,6 +340,14 @@ test("language picker is frameless and its options rise into view", async () => 
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
+test("language options pop out from the trigger before settling", async () => {
+  const css = await source("src/styles/global.css");
+
+  assert.match(css, /\.language-picker details\[open\] \.language-options\s*\{[^}]*animation:\s*language-menu-pop\s+320ms/);
+  assert.match(css, /@keyframes language-menu-pop[\s\S]*max-height:\s*0;[\s\S]*translateY\(0\.75rem\) scale\(0\.96\)[\s\S]*max-height:\s*12rem;[\s\S]*translateY\(-0\.125rem\) scale\(1\.015\)[\s\S]*translateY\(0\) scale\(1\)/);
+  assert.match(css, /transform-origin:\s*bottom left/);
+});
+
 test("mobile navigation keeps language links available without JavaScript", async () => {
   const layout = await source("src/layouts/BaseLayout.astro");
   const css = await source("src/styles/global.css");
