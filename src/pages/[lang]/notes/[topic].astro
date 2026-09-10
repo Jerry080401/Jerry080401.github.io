@@ -1,0 +1,47 @@
+---
+import PostList from "../../../components/PostList.astro";
+import { interpolate, localePath, messages, routeLocales, type RouteLocale } from "../../../i18n";
+import { groupNoteTopics, type NoteTopic } from "../../../lib/note-topics";
+import { getAllPublishedPosts, getPublishedPosts } from "../../../lib/posts";
+import { getTopicLanguagePaths, type LanguagePaths } from "../../../lib/translations";
+import { withBase } from "../../../lib/url";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const allPosts = await getAllPublishedPosts();
+  const paths = [];
+  for (const locale of routeLocales) {
+    const topics = groupNoteTopics(await getPublishedPosts(locale));
+    for (const topic of topics) {
+      paths.push({
+        params: { lang: locale, topic: topic.slug },
+        props: { locale, topic, languagePaths: getTopicLanguagePaths(topic.slug, allPosts) }
+      });
+    }
+  }
+  return paths;
+}
+
+interface Props {
+  locale: RouteLocale;
+  topic: NoteTopic;
+  languagePaths: LanguagePaths;
+}
+
+const { locale, topic, languagePaths } = Astro.props;
+const copy = messages[locale];
+const countText = topic.posts.length === 1
+  ? copy.topicCountOne
+  : interpolate(copy.topicCountMany, { count: topic.posts.length });
+---
+
+<BaseLayout locale={locale} title={`${topic.name} — ${copy.navNotes}`} languagePaths={languagePaths}>
+  <section class="page-shell">
+    <a class="topic-back" href={withBase(localePath(locale, "/notes/"))}>← {copy.allTopics}</a>
+    <header class="page-header">
+      <h1>{topic.name}</h1>
+      <p>{countText}</p>
+    </header>
+    <PostList locale={locale} posts={topic.posts} />
+  </section>
+</BaseLayout>

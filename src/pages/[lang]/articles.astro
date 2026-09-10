@@ -1,0 +1,28 @@
+---
+import PostList from "../../components/PostList.astro";
+import { messages, routeLocales, type RouteLocale } from "../../i18n";
+import { getPublishedPosts } from "../../lib/posts";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export function getStaticPaths() {
+  return routeLocales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+interface Props {
+  locale: RouteLocale;
+}
+
+const { locale } = Astro.props;
+const copy = messages[locale];
+const posts = (await getPublishedPosts(locale)).filter((post) => post.data.category === "文章");
+---
+
+<BaseLayout locale={locale} title={copy.navArticles} description={copy.articlesIntro}>
+  <section class="page-shell">
+    <header class="page-header">
+      <h1>{copy.navArticles}</h1>
+      <p>{copy.articlesIntro}</p>
+    </header>
+    <PostList locale={locale} posts={posts} emptyText={copy.articlesEmpty} />
+  </section>
+</BaseLayout>

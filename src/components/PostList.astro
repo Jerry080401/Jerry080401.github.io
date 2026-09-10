@@ -1,16 +1,23 @@
 ---
 import type { Post } from "../lib/posts";
+import { defaultLocale, messages, type Locale } from "../i18n";
 import { formatDate, postPath } from "../lib/posts";
 import { withBase } from "../lib/url";
 
 interface Props {
   posts: Post[];
+  locale?: Locale;
+  emptyTitle?: string;
   emptyText?: string;
 }
 
-const { posts, emptyText = "文章整理完成後，會從這裡開始出現。" } = Astro.props;
-const metaLabel = (post: Post) =>
-  post.data.category === "學習筆記" ? (post.data.topic?.name ?? post.data.category) : post.data.category;
+const { locale = defaultLocale, posts, emptyTitle, emptyText } = Astro.props;
+const copy = messages[locale];
+const resolvedEmptyTitle = emptyTitle ?? copy.homeEmptyTitle;
+const resolvedEmptyText = emptyText ?? copy.homeEmptyText;
+const metaLabel = (post: Post) => post.data.category === "學習筆記"
+  ? (post.data.topic?.name ?? copy.navNotes)
+  : copy.navArticles;
 ---
 
 {
@@ -21,7 +28,7 @@ const metaLabel = (post: Post) =>
           <article>
             <div class="post-meta">
               <time datetime={post.data.published.toISOString()}>
-                {formatDate(post.data.published)}
+                {formatDate(post.data.published, post.data.locale)}
               </time>
               <span>{metaLabel(post)}</span>
             </div>
@@ -35,8 +42,8 @@ const metaLabel = (post: Post) =>
     </ol>
   ) : (
     <div class="empty-state">
-      <h2>還沒有內容</h2>
-      <p>{emptyText}</p>
+      <h2>{resolvedEmptyTitle}</h2>
+      <p>{resolvedEmptyText}</p>
     </div>
   )
 }

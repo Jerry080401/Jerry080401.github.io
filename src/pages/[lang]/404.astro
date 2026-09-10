@@ -1,0 +1,26 @@
+---
+import { localePath, messages, routeLocales, type RouteLocale } from "../../i18n";
+import { withBase } from "../../lib/url";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export function getStaticPaths() {
+  return routeLocales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+interface Props {
+  locale: RouteLocale;
+}
+
+const { locale } = Astro.props;
+const copy = messages[locale];
+---
+
+<BaseLayout locale={locale} title={copy.notFoundTitle} canonical={false} noindex>
+  <section class="page-shell">
+    <header class="page-header">
+      <h1>404</h1>
+      <p>{copy.notFoundText}</p>
+    </header>
+    <div class="prose"><a href={withBase(localePath(locale, "/"))}>{copy.returnHome} →</a></div>
+  </section>
+</BaseLayout>

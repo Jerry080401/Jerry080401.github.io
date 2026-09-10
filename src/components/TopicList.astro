@@ -1,14 +1,17 @@
 ---
 import type { NoteTopic } from "../lib/note-topics";
+import { defaultLocale, interpolate, localePath, messages, type Locale } from "../i18n";
 import { noteTopicPath } from "../lib/note-topics";
 import { formatDate } from "../lib/posts";
 import { withBase } from "../lib/url";
 
 interface Props {
   topics: NoteTopic[];
+  locale?: Locale;
 }
 
-const { topics } = Astro.props;
+const { topics, locale = defaultLocale } = Astro.props;
+const copy = messages[locale];
 ---
 
 {
@@ -16,16 +19,16 @@ const { topics } = Astro.props;
     <ol class="topic-list">
       {topics.map((topic, index) => (
         <li>
-          <a class="topic-row" href={withBase(noteTopicPath(topic.slug))}>
+          <a class="topic-row" href={withBase(localePath(locale, noteTopicPath(topic.slug)))}>
             <span class="topic-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
             <span class="topic-copy">
               <strong>{topic.name}</strong>
               <time datetime={topic.posts[0].data.published.toISOString()}>
-                最近更新 {formatDate(topic.posts[0].data.published)}
+                {copy.latestUpdate} {formatDate(topic.posts[0].data.published, locale)}
               </time>
             </span>
             <span class="topic-count">
-              {topic.posts.length === 1 ? "1 篇筆記" : `${topic.posts.length} 篇筆記`}
+              {topic.posts.length === 1 ? copy.oneNote : interpolate(copy.manyNotes, { count: topic.posts.length })}
             </span>
           </a>
         </li>
@@ -33,8 +36,8 @@ const { topics } = Astro.props;
     </ol>
   ) : (
     <div class="empty-state">
-      <h2>還沒有主題</h2>
-      <p>第一個學習主題整理完成後，會從這裡開始出現。</p>
+      <h2>{copy.noTopicsTitle}</h2>
+      <p>{copy.noTopicsText}</p>
     </div>
   )
 }

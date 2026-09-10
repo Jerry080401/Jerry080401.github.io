@@ -12,11 +12,20 @@ const postSchema = z.object({
   description: z.string().default(""),
   published: z.coerce.date(),
   updated: z.coerce.date().optional(),
+  locale: z.enum(["zh-Hant", "en", "ja", "de"]).default("zh-Hant"),
+  translationKey: z.string().optional(),
   category: z.enum(["文章", "學習筆記"]),
   topic: topicSchema.optional(),
   tags: z.array(z.string()).default([]),
   draft: z.boolean().default(false)
 }).superRefine((data, context) => {
+  if (data.locale !== "zh-Hant" && !data.translationKey) {
+    context.addIssue({
+      code: "custom",
+      path: ["translationKey"],
+      message: "非中文內容必須指定 translationKey"
+    });
+  }
   if (data.category === "學習筆記" && !data.topic) {
     context.addIssue({
       code: "custom",

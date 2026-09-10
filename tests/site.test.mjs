@@ -9,12 +9,14 @@ async function source(path) {
 
 test("site identity and navigation are independent", async () => {
   const config = await source("src/config.ts");
+  const i18n = await source("src/i18n.ts");
   assert.match(config, /Jerry's Notes/);
-  assert.match(config, /學習筆記與文章/);
-  for (const path of ["/", "/articles/", "/notes/", "/about/"]) {
-    assert.match(config, new RegExp(path.replaceAll("/", "\\/")));
-  }
-  assert.doesNotMatch(config, /archive|歸檔/);
+  assert.match(i18n, /學習筆記與文章/);
+  assert.match(i18n, /navHome/);
+  assert.match(i18n, /navArticles/);
+  assert.match(i18n, /navNotes/);
+  assert.match(i18n, /navAbout/);
+  assert.doesNotMatch(`${config}\n${i18n}`, /archive|歸檔/);
 });
 
 test("home omits undecided Japanese and kanji decorations", async () => {
@@ -26,7 +28,7 @@ test("home omits undecided Japanese and kanji decorations", async () => {
   assert.doesNotMatch(home, /class="hero"/);
   assert.match(home, /最近更新/);
   assert.match(home, /PostList/);
-  assert.match(postList, /還沒有內容/);
+  assert.match(postList, /homeEmptyTitle/);
 });
 
 test("content lanes have headings and empty states", async () => {
@@ -49,8 +51,8 @@ test("archive is removed from the site shell", async () => {
 test("layout is semantic, themeable, and tracking-free", async () => {
   const layout = await source("src/layouts/BaseLayout.astro");
   await source("public/favicon.ico");
-  assert.match(layout, /lang="zh-Hant"/);
-  assert.match(layout, /aria-label="主要導覽"/);
+  assert.match(layout, /<html lang=\{locale\}>/);
+  assert.match(layout, /copy\.mainNavLabel/);
   assert.match(layout, /const isHome/);
   assert.match(layout, /const sectionLabel = isHome \? ""/);
   assert.match(layout, /class="side-rail"/);
@@ -70,6 +72,7 @@ test("theme buttons initially describe switching away from resolved dark theme",
 
   const buttons = Array.from({ length: 2 }, () => ({
     label: "切換深色模式",
+    dataset: { darkLabel: "切換深色模式", lightLabel: "切換淺色模式" },
     addEventListener() {},
     setAttribute(name, value) { if (name === "aria-label") this.label = value; },
   }));
@@ -130,7 +133,7 @@ test("deployment workflow pins actions to reviewed commits", async () => {
 
 test("RSS escapes XML-significant generated post links and guids", async () => {
   const { escapeXml } = await import("../src/lib/xml.ts");
-  const rss = await source("src/pages/rss.xml.ts");
+  const rss = await source("src/lib/rss.ts");
   const link = new URL("/posts/amp&ersand/", "https://jerry080401.github.io").href;
 
   assert.equal(escapeXml(link), "https://jerry080401.github.io/posts/amp&amp;ersand/");
@@ -202,10 +205,98 @@ test("learning notes index lists topics before their posts", async () => {
   assert.match(topicPage, /<PostList/);
   assert.match(topicPage, /所有主題/);
   assert.match(topicList, /topic-list/);
-  assert.match(topicList, /1 篇筆記/);
+  assert.match(topicList, /copy\.oneNote/);
 });
 
 test("post excerpts stay in the title column", async () => {
   const postList = await source("src/components/PostList.astro");
   assert.match(postList, /class="post-copy"[\s\S]*<h2>[\s\S]*post\.data\.description/);
+});
+
+test("i18n preserves Chinese URLs and prefixes English, Japanese, and German", async () => {
+  const { defaultLocale, localePath, locales, routeLocales } = await import("../src/i18n.ts");
+  assert.equal(defaultLocale, "zh-Hant");
+  assert.deepEqual(locales, ["zh-Hant", "en", "ja", "de"]);
+  assert.deepEqual(routeLocales, ["en", "ja", "de"]);
+  assert.equal(localePath("zh-Hant", "/about/"), "/about/");
+  assert.equal(localePath("en", "/about/"), "/en/about/");
+  assert.equal(localePath("ja", "/"), "/ja/");
+  assert.equal(localePath("de", "/notes/browser-security/"), "/de/notes/browser-security/");
+});
+
+test("all locales expose the complete interface message catalog", async () => {
+  const { locales, messages } = await import("../src/i18n.ts");
+  const required = [
+    "siteSubtitle", "siteDescription", "navHome", "navArticles", "navNotes", "navAbout",
+    "skipToContent", "openMenu", "closeMenu", "switchDark", "switchLight", "languageLabel",
+    "recentUpdates", "homeEmptyTitle", "articlesIntro", "notesIntro", "noTopicsTitle",
+    "latestUpdate", "oneNote", "manyNotes", "allTopics", "aboutTitle", "notFoundTitle", "returnHome",
+  ];
+  for (const locale of locales) {
+    for (const key of required) assert.equal(typeof messages[locale][key], "string", `${locale}.${key}`);
+    assert.match(messages[locale].manyNotes, /\{count\}/);
+  }
+});
+
+test("localized static, topic, post, and RSS routes exist", async () => {
+  for (const path of [
+    "src/pages/[lang]/index.astro",
+    "src/pages/[lang]/articles.astro",
+    "src/pages/[lang]/notes.astro",
+    "src/pages/[lang]/about.astro",
+    "src/pages/[lang]/404.astro",
+    "src/pages/[lang]/notes/[topic].astro",
+    "src/pages/[lang]/posts/[...slug].astro",
+    "src/pages/[lang]/rss.xml.ts",
+  ]) {
+    const page = await source(path);
+    assert.match(page, /getStaticPaths/);
+  }
+});
+
+test("layout localizes navigation, controls, feeds, and alternate-language links", async () => {
+  const layout = await source("src/layouts/BaseLayout.astro");
+  assert.match(layout, /locale\?: Locale/);
+  assert.match(layout, /<html lang=\{locale\}/);
+  assert.match(layout, /hreflang/);
+  assert.match(layout, /class="language-switcher"/);
+  assert.match(layout, /messages\[locale\]/);
+  assert.match(layout, /localePath/);
+  assert.doesNotMatch(layout, />跳至主要內容</);
+});
+
+test("content entries carry locale and translation identity", async () => {
+  const config = await source("src/content.config.ts");
+  const posts = await source("src/lib/posts.ts");
+  assert.match(config, /locale:\s*z\.enum\(\["zh-Hant", "en", "ja", "de"\]\)/);
+  assert.match(config, /translationKey:\s*z\.string\(\)\.optional\(\)/);
+  assert.match(config, /locale !== "zh-Hant"[\s\S]*!data\.translationKey/);
+  assert.match(posts, /getPublishedPosts\(locale/);
+  assert.match(posts, /localePath\(post\.data\.locale/);
+});
+
+test("content language links include only translations that exist", async () => {
+  const { getPostLanguagePaths, getTopicLanguagePaths } = await import("../src/lib/translations.ts");
+  const makePost = (id, locale, translationKey, topic) => ({
+    id,
+    data: { title: id, locale, translationKey, topic, category: topic ? "學習筆記" : "文章", published: new Date(), tags: [] },
+  });
+  const zh = makePost("guide-zh", "zh-Hant", "guide", undefined);
+  const en = makePost("guide-en", "en", "guide", undefined);
+  const unrelated = makePost("other-ja", "ja", "other", undefined);
+  assert.deepEqual(getPostLanguagePaths(zh, [zh, en, unrelated]), {
+    "zh-Hant": "/posts/guide-zh/",
+    en: "/en/posts/guide-en/",
+  });
+  const duplicateEnglish = makePost("guide-en-duplicate", "en", "guide", undefined);
+  assert.throws(() => getPostLanguagePaths(zh, [zh, en, duplicateEnglish]), /same translation key/i);
+
+  const topicPosts = [
+    makePost("note-zh", "zh-Hant", "note", { name: "安全", slug: "security" }),
+    makePost("note-de", "de", "note", { name: "Sicherheit", slug: "security" }),
+  ];
+  assert.deepEqual(getTopicLanguagePaths("security", topicPosts), {
+    "zh-Hant": "/notes/security/",
+    de: "/de/notes/security/",
+  });
 });

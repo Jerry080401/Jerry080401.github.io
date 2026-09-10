@@ -1,0 +1,33 @@
+---
+import { messages, routeLocales, type RouteLocale } from "../../i18n";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export function getStaticPaths() {
+  return routeLocales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+interface Props {
+  locale: RouteLocale;
+}
+
+const { locale } = Astro.props;
+const copy = messages[locale];
+---
+
+<BaseLayout locale={locale} title={copy.aboutTitle} description={copy.aboutIntro}>
+  <section class="page-shell">
+    <header class="page-header">
+      <h1>{copy.aboutTitle}</h1>
+      <p>{copy.aboutIntro}</p>
+    </header>
+    <div class="prose">
+      <p>{copy.aboutBody}</p>
+      <h2>{copy.contentTypes}</h2>
+      <ul>
+        <li><strong>{copy.navArticles}:</strong> {copy.articleDefinition}</li>
+        <li><strong>{copy.navNotes}:</strong> {copy.noteDefinition}</li>
+      </ul>
+      <p>{copy.aboutPlaceholder}</p>
+    </div>
+  </section>
+</BaseLayout>

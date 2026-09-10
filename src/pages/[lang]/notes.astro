@@ -1,0 +1,29 @@
+---
+import TopicList from "../../components/TopicList.astro";
+import { messages, routeLocales, type RouteLocale } from "../../i18n";
+import { groupNoteTopics } from "../../lib/note-topics";
+import { getPublishedPosts } from "../../lib/posts";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export function getStaticPaths() {
+  return routeLocales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+interface Props {
+  locale: RouteLocale;
+}
+
+const { locale } = Astro.props;
+const copy = messages[locale];
+const topics = groupNoteTopics(await getPublishedPosts(locale));
+---
+
+<BaseLayout locale={locale} title={copy.navNotes} description={copy.notesIntro}>
+  <section class="page-shell">
+    <header class="page-header">
+      <h1>{copy.navNotes}</h1>
+      <p>{copy.notesIntro}</p>
+    </header>
+    <TopicList locale={locale} topics={topics} />
+  </section>
+</BaseLayout>

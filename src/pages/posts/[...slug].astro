@@ -1,32 +1,35 @@
 ---
 import { render } from "astro:content";
 import { noteTopicPath } from "../../lib/note-topics";
-import { formatDate, getPublishedPosts, postPath, type Post } from "../../lib/posts";
+import { formatDate, getAllPublishedPosts, getPublishedPosts, postPath, type Post } from "../../lib/posts";
+import { getPostLanguagePaths, type LanguagePaths } from "../../lib/translations";
 import { withBase } from "../../lib/url";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
+  const allPosts = await getAllPublishedPosts();
   return posts.map((post) => ({
     params: { slug: postPath(post).replace(/^\/posts\//, "").replace(/\/$/, "") },
-    props: { post }
+    props: { post, languagePaths: getPostLanguagePaths(post, allPosts) }
   }));
 }
 
 interface Props {
   post: Post;
+  languagePaths: LanguagePaths;
 }
 
-const { post } = Astro.props;
+const { post, languagePaths } = Astro.props;
 const { Content } = await render(post);
 const topic = post.data.category === "學習筆記" ? post.data.topic : undefined;
 ---
 
-<BaseLayout title={post.data.title} description={post.data.description}>
+<BaseLayout title={post.data.title} description={post.data.description} languagePaths={languagePaths}>
   <article>
     <header class="article-header">
       <div class="post-meta">
-        <time datetime={post.data.published.toISOString()}>{formatDate(post.data.published)}</time>
+        <time datetime={post.data.published.toISOString()}>{formatDate(post.data.published, post.data.locale)}</time>
         <span>
           {topic ? <a href={withBase(noteTopicPath(topic.slug))}>{topic.name}</a> : post.data.category}
         </span>

@@ -1,0 +1,32 @@
+---
+import PostList from "../../components/PostList.astro";
+import { messages, routeLocales, type RouteLocale } from "../../i18n";
+import { getPublishedPosts } from "../../lib/posts";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export function getStaticPaths() {
+  return routeLocales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+interface Props {
+  locale: RouteLocale;
+}
+
+const { locale } = Astro.props;
+const copy = messages[locale];
+const posts = (await getPublishedPosts(locale)).slice(0, 6);
+---
+
+<BaseLayout locale={locale}>
+  <section class="home-intro">
+    <h1>Jerry's Notes</h1>
+  </section>
+
+  <section class="content-section" aria-labelledby="recent-title">
+    <div class="section-heading">
+      <h2 id="recent-title">{copy.recentUpdates}</h2>
+      <span>{copy.recentKicker}</span>
+    </div>
+    <PostList locale={locale} posts={posts} />
+  </section>
+</BaseLayout>

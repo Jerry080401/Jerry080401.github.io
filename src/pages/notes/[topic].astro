@@ -1,24 +1,30 @@
 ---
 import PostList from "../../components/PostList.astro";
 import { groupNoteTopics, type NoteTopic } from "../../lib/note-topics";
-import { getPublishedPosts } from "../../lib/posts";
+import { getAllPublishedPosts, getPublishedPosts } from "../../lib/posts";
+import { getTopicLanguagePaths, type LanguagePaths } from "../../lib/translations";
 import { withBase } from "../../lib/url";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
   const topics = groupNoteTopics(await getPublishedPosts());
-  return topics.map((topic) => ({ params: { topic: topic.slug }, props: { topic } }));
+  const allPosts = await getAllPublishedPosts();
+  return topics.map((topic) => ({
+    params: { topic: topic.slug },
+    props: { topic, languagePaths: getTopicLanguagePaths(topic.slug, allPosts) }
+  }));
 }
 
 interface Props {
   topic: NoteTopic;
+  languagePaths: LanguagePaths;
 }
 
-const { topic } = Astro.props;
+const { topic, languagePaths } = Astro.props;
 const countText = topic.posts.length === 1 ? "1 篇筆記" : `${topic.posts.length} 篇筆記`;
 ---
 
-<BaseLayout title={`${topic.name} — 學習筆記`}>
+<BaseLayout title={`${topic.name} — 學習筆記`} languagePaths={languagePaths}>
   <section class="page-shell">
     <a class="topic-back" href={withBase("/notes/")}>← 所有主題</a>
     <header class="page-header">

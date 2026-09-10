@@ -1,0 +1,50 @@
+---
+import { render } from "astro:content";
+import { localePath, messages, routeLocales, type RouteLocale } from "../../../i18n";
+import { noteTopicPath } from "../../../lib/note-topics";
+import { formatDate, getAllPublishedPosts, postPath } from "../../../lib/posts";
+import { getPostLanguagePaths } from "../../../lib/translations";
+import { withBase } from "../../../lib/url";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const posts = await getAllPublishedPosts();
+  return posts
+    .filter((post) => routeLocales.includes(post.data.locale as RouteLocale))
+    .map((post) => {
+      const locale = post.data.locale as RouteLocale;
+      const prefix = localePath(locale, "/posts/");
+      const slug = postPath(post).slice(prefix.length).replace(/\/$/, "");
+      return {
+        params: { lang: locale, slug },
+        props: { post, languagePaths: getPostLanguagePaths(post, posts) }
+      };
+    });
+}
+
+const { post, languagePaths } = Astro.props;
+const locale = post.data.locale as RouteLocale;
+const copy = messages[locale];
+const { Content } = await render(post);
+const topic = post.data.category === "學習筆記" ? post.data.topic : undefined;
+---
+
+<BaseLayout locale={locale} title={post.data.title} description={post.data.description} languagePaths={languagePaths}>
+  <article>
+    <header class="article-header">
+      <div class="post-meta">
+        <time datetime={post.data.published.toISOString()}>{formatDate(post.data.published, locale)}</time>
+        <span>
+          {
+            topic
+              ? <a href={withBase(localePath(locale, noteTopicPath(topic.slug)))}>{topic.name}</a>
+              : copy.navArticles
+          }
+        </span>
+      </div>
+      <h1>{post.data.title}</h1>
+      {post.data.description && <p>{post.data.description}</p>}
+    </header>
+    <div class="prose"><Content /></div>
+  </article>
+</BaseLayout>
