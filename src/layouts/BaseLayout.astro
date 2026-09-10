@@ -220,6 +220,16 @@ const rssPath = localePath(locale, "/rss.xml");
       const languageDisclosures = Array.from(
         document.querySelectorAll("details[data-language-disclosure]")
       );
+      const restartLanguageAnimations = (disclosure = languageDisclosures[0]) => {
+        if (!disclosure) return;
+        const animatedElements = disclosure.querySelectorAll<HTMLElement>(
+          ".language-options, .language-options > li"
+        );
+        for (const element of animatedElements) element.style.animation = "none";
+        const reflowTarget = animatedElements[0];
+        if (reflowTarget) void reflowTarget.offsetWidth;
+        for (const element of animatedElements) element.style.removeProperty("animation");
+      };
       const closeLanguageDisclosures = () => {
         for (const disclosure of languageDisclosures) {
           disclosure.removeAttribute("open");
@@ -235,6 +245,7 @@ const rssPath = localePath(locale, "/rss.xml");
       for (const disclosure of languageDisclosures) {
         disclosure.addEventListener("toggle", () => {
           if (!disclosure.hasAttribute("open")) return;
+          restartLanguageAnimations(disclosure);
           for (const otherDisclosure of languageDisclosures) {
             if (otherDisclosure !== disclosure) otherDisclosure.removeAttribute("open");
           }

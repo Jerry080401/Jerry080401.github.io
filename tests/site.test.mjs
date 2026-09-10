@@ -360,6 +360,18 @@ test("language options enter one at a time in a visible sequence", async () => {
   assert.doesNotMatch(menuAnimation[1], /opacity:/);
 });
 
+test("each language disclosure opening forces a fresh animation cycle", async () => {
+  const layout = await source("src/layouts/BaseLayout.astro");
+
+  assert.match(layout, /const restartLanguageAnimations =/);
+  assert.match(layout, /querySelectorAll<HTMLElement>\(\s*"\.language-options, \.language-options > li"\s*\)/);
+  assert.match(layout, /element\.style\.animation = "none"/);
+  assert.match(layout, /const reflowTarget = animatedElements\[0\]/);
+  assert.match(layout, /if \(reflowTarget\) void reflowTarget\.offsetWidth/);
+  assert.match(layout, /element\.style\.removeProperty\("animation"\)/);
+  assert.match(layout, /restartLanguageAnimations\(disclosure\)/);
+});
+
 test("reduced motion removes the stagger delay", async () => {
   const css = await source("src/styles/global.css");
 
