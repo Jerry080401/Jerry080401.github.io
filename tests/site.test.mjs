@@ -101,6 +101,9 @@ test("404 opts out of canonical indexing metadata", async () => {
 test("GitHub Pages build handles user and project sites", async () => {
   const config = await source("astro.config.mjs");
   const workflow = await source(".github/workflows/deploy.yml");
+  assert.match(config, /const primarySite = "https:\/\/jerry0804\.dev"/);
+  assert.match(config, /site: isPagesBuild && !isUserSite/);
+  assert.match(config, /:\s*primarySite/);
   assert.match(config, /GITHUB_REPOSITORY/);
   assert.match(config, /github\.io/);
   assert.match(workflow, /actions\/deploy-pages@[^\s]+ # v4/);
