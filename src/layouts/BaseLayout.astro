@@ -1,6 +1,7 @@
 ---
 import { site } from "../config";
 import LanguagePicker from "../components/LanguagePicker.astro";
+import ReadingProgress from "../components/ReadingProgress.astro";
 import {
   defaultLocale,
   localePath,
@@ -19,6 +20,7 @@ interface Props {
   description?: string;
   canonical?: boolean;
   noindex?: boolean;
+  readingProgress?: boolean;
   languagePaths?: Partial<Record<Locale, string>>;
 }
 
@@ -28,6 +30,7 @@ const {
   description: descriptionProp,
   canonical = true,
   noindex = false,
+  readingProgress = false,
   languagePaths
 } = Astro.props;
 const copy = messages[locale];
@@ -206,7 +209,13 @@ const rssPath = localePath(locale, "/rss.xml");
           </div>
         </div>
 
-        <main id="content" tabindex="-1">
+        {readingProgress && <ReadingProgress />}
+
+        <main
+          id="content"
+          tabindex="-1"
+          data-reading-content={readingProgress ? true : undefined}
+        >
           <slot />
         </main>
 
@@ -304,6 +313,7 @@ const rssPath = localePath(locale, "/rss.xml");
           updateThemeButtonLabels();
         });
       }
+
     </script>
   </body>
 </html>

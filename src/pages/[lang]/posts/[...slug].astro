@@ -29,7 +29,7 @@ const { Content } = await render(post);
 const topic = post.data.category === "學習筆記" ? post.data.topic : undefined;
 ---
 
-<BaseLayout locale={locale} title={post.data.title} description={post.data.description} languagePaths={languagePaths}>
+<BaseLayout locale={locale} title={post.data.title} description={post.data.description} languagePaths={languagePaths} readingProgress>
   <article>
     <header class="article-header">
       <div class="post-meta">

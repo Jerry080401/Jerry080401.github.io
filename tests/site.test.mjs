@@ -387,3 +387,38 @@ test("mobile navigation keeps language links available without JavaScript", asyn
   assert.match(css, /\.mobile-noscript-nav\s*\{[\s\S]*display:\s*none/);
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.mobile-noscript-nav\s*\{[\s\S]*display:\s*grid/);
 });
+
+test("reading progress clamps to the article and skips short content", async () => {
+  const { calculateReadingProgress } = await import("../src/lib/reading-progress.ts");
+
+  assert.equal(calculateReadingProgress({ scrollY: 0, contentTop: 100, contentHeight: 1600, viewportHeight: 800 }), 0);
+  assert.equal(calculateReadingProgress({ scrollY: 500, contentTop: 100, contentHeight: 1600, viewportHeight: 800 }), 0.5);
+  assert.equal(calculateReadingProgress({ scrollY: 1200, contentTop: 100, contentHeight: 1600, viewportHeight: 800 }), 1);
+  assert.equal(calculateReadingProgress({ scrollY: 0, contentTop: 100, contentHeight: 700, viewportHeight: 800 }), null);
+});
+
+test("post pages opt into a quiet text-free reading progress line", async () => {
+  const layout = await source("src/layouts/BaseLayout.astro");
+  const indicator = await source("src/components/ReadingProgress.astro");
+  const rootPost = await source("src/pages/posts/[...slug].astro");
+  const localizedPost = await source("src/pages/[lang]/posts/[...slug].astro");
+  const home = await source("src/pages/index.astro");
+  const articles = await source("src/pages/articles.astro");
+  const css = await source("src/styles/global.css");
+
+  assert.match(layout, /readingProgress\?: boolean/);
+  assert.match(layout, /readingProgress = false/);
+  assert.match(layout, /readingProgress && <ReadingProgress/);
+  assert.match(indicator, /data-reading-progress[\s\S]*aria-hidden="true"[\s\S]*data-reading-progress-bar/);
+  assert.match(layout, /data-reading-content=\{readingProgress \? true : undefined\}/);
+  assert.match(indicator, /calculateReadingProgress/);
+  assert.match(indicator, /requestAnimationFrame/);
+  assert.doesNotMatch(`${layout}\n${indicator}`, /文章進度|閱讀進度|Reading progress/);
+  assert.match(rootPost, /<BaseLayout[^>]*readingProgress/);
+  assert.match(localizedPost, /<BaseLayout[^>]*readingProgress/);
+  assert.doesNotMatch(home, /readingProgress/);
+  assert.doesNotMatch(articles, /readingProgress/);
+  assert.match(css, /\.reading-progress\s*\{[^}]*position:\s*sticky;[^}]*top:\s*0;[^}]*height:\s*2px;/);
+  assert.match(css, /\.reading-progress-bar\s*\{[^}]*background:\s*var\(--accent\);[^}]*transform:\s*scaleX\(0\);/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*\.reading-progress\s*\{[^}]*top:\s*4\.5rem;[^}]*width:\s*100%;/);
+});
